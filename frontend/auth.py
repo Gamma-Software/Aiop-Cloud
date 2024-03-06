@@ -2,6 +2,7 @@ from __future__ import annotations as _annotations
 
 import asyncio
 import json
+import requests
 import os
 from dataclasses import asdict
 from typing import Annotated, Literal, TypeAlias
@@ -18,7 +19,6 @@ from pydantic import BaseModel, EmailStr, Field, SecretStr
 from .auth_user import User
 from .shared import demo_page
 from httpx import AsyncClient
-import httpx
 
 router = APIRouter()
 
@@ -73,7 +73,7 @@ def auth_login(
         c.LinkList(
             links=[
                 c.Link(
-                    components=[c.Text(text="Password Login")],
+                    components=[c.Text(text="Authentification par mot de passe")],
                     on_click=PageEvent(
                         name="tab",
                         push_path="/auth/login/password",
@@ -81,15 +81,16 @@ def auth_login(
                     ),
                     active="/auth/login/password",
                 ),
-                c.Link(
-                    components=[c.Text(text="GitHub Login")],
-                    on_click=PageEvent(
-                        name="tab",
-                        push_path="/auth/login/github",
-                        context={"kind": "github"},
-                    ),
-                    active="/auth/login/github",
-                ),
+                # TODO : add GitHub login
+                # c.Link(
+                #    components=[c.Text(text="GitHub Login")],
+                #    on_click=PageEvent(
+                #        name="tab",
+                #        push_path="/auth/login/github",
+                #        context={"kind": "github"},
+                #    ),
+                #    active="/auth/login/github",
+                # ),
             ],
             mode="tabs",
             class_name="+ mb-4",
@@ -110,18 +111,20 @@ def auth_login_content(kind: LoginKind) -> list[AnyComponent]:
     match kind:
         case "password":
             return [
-                c.Heading(text="Password Login", level=3),
-                c.Paragraph(
-                    text=(
-                        "This is a very simple demo of password authentication, "
-                        'here you can "login" with any email address and password.'
-                    )
-                ),
-                c.Paragraph(
-                    text="(Passwords are not saved and is email stored in the browser via a JWT only)"
-                ),
+                c.Paragraph(text="Les mots de passes ne sont pas enregistrés."),
                 c.ModelForm(
                     model=LoginForm, submit_url="/api/auth/login", display_mode="page"
+                ),
+                c.Heading(text="Mot de passe oublié ?", level=3),
+                c.Markdown(
+                    text=(
+                        "En appuyant sur ce button, vous recevrez un email pour changer votre mot de passe."
+                    )
+                ),
+                c.ModelForm(
+                    model=ForgotPasswordForm,
+                    display_mode="default",
+                    submit_url="/api/auth/reset-password-email",
                 ),
             ]
         case "github":
@@ -142,13 +145,13 @@ def auth_login_content(kind: LoginKind) -> list[AnyComponent]:
 
 class LoginForm(BaseModel):
     email: EmailStr = Field(
-        title="Email Address",
-        description="Enter a valid email",
+        title="Adresse Email",
+        description="Entrez votre adresse email",
         json_schema_extra={"autocomplete": "email"},
     )
     password: SecretStr = Field(
-        title="Password",
-        description="Enter whatever value you like, password is not checked",
+        title="Mot de passe",
+        description="Entrez votre mot de passe",
         json_schema_extra={"autocomplete": "current-password"},
     )
 
@@ -190,13 +193,84 @@ async def get_license_key(bearer_token: str):
     return data["license_key"]
 
 
+class ResetPassForm(BaseModel):
+    current_pass: str = Field(
+        title="Mot de passe actuel",
+        description="Entrez votre mot de passe actuel",
+        json_schema_extra={"autocomplete": "current-password"},
+    )
+    new_password: SecretStr = Field(
+        title="Nouveau mot de passe",
+        description="Entrez votre nouveau mot de passe",
+    )
+
+
+@router.get("/reset-password", response_model=FastUI, response_model_exclude_none=True)
+async def reset_password(
+    user: Annotated[User, Depends(User.from_request)],
+) -> list[AnyComponent]:
+    url = "http://127.0.0.1:7000/api/v1/auth/forgot-password"
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+    data = {"email": user.email}
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print("Request failed:", e)
+        return [
+            c.Paragraph(
+                text=f"Nous avons rencontré un problème lors de l'envoi de l'email de réinitialisation de mot de passe. Veuillez réessayer plus tard."
+            )
+        ]
+    return [
+        c.Paragraph(
+            text=f"Un email de réinitialisation de mot de passe a été envoyé à votre adresse email: {user.email}."
+        )
+    ]
+
+
+class ForgotPasswordForm(BaseModel):
+    email: EmailStr = Field(
+        title="Email Address", description="Entrez votre adresse email"
+    )
+
+
+@router.post(
+    "/reset-password-email", response_model=FastUI, response_model_exclude_none=True
+)
+async def reset_password_without_email(
+    form: Annotated[ForgotPasswordForm, fastui_form(ForgotPasswordForm)]
+) -> list[AnyComponent]:
+    url = "http://127.0.0.1:7000/api/v1/auth/forgot-password"
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+    data = {"email": form.email}
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print("Request failed:", e)
+        return [
+            c.Paragraph(
+                text=f"Nous avons rencontré un problème lors de l'envoi de l'email de réinitialisation de mot de passe. Veuillez réessayer plus tard."
+            )
+        ]
+    return [
+        c.Markdown(
+            text="__Un email de réinitialisation de mot de passe a été envoyé à l’adresse email si elle existe:__"
+        ),
+        c.Paragraph(text=f"{form.email}"),
+    ]
+
+
 @router.get("/profile", response_model=FastUI, response_model_exclude_none=True)
 async def profile(
     user: Annotated[User, Depends(User.from_request)]
 ) -> list[AnyComponent]:
     email = user.email
-    password = user.extra.get("pass", "password")
-    token = user.extra.get("token", "token")
+    password = user.extra.get("pass", "pas de password")
+    token = user.extra.get("token", "pas de token")
     key = await get_license_key(token)
     return demo_page(
         c.Navbar(
@@ -221,7 +295,32 @@ async def profile(
             ],
         ),
         c.Paragraph(text=f"Vous êtes connecté avec: {user.email}"),
-        c.Button(text="Modifier mot de passe", on_click=PageEvent(name="static-modal")),
+        c.Div(
+            components=[
+                c.Heading(text="Changer de mot de passe", level=2),
+                c.Markdown(
+                    text=(
+                        "En appuyant sur ce button, vous recevrez un email pour changer votre mot de passe."
+                    )
+                ),
+                c.Button(
+                    text="Changer de mot de passe",
+                    on_click=PageEvent(name="pass-reset"),
+                ),
+                c.Modal(
+                    title="Changer de mot de passe",
+                    body=[c.ServerLoad(path="/auth/reset-password")],
+                    footer=[
+                        c.Button(
+                            text="Close",
+                            on_click=PageEvent(name="pass-reset", clear=True),
+                        ),
+                    ],
+                    open_trigger=PageEvent(name="pass-reset"),
+                ),
+            ],
+            class_name="border-top mt-3 pt-1",
+        ),
         c.Heading(text="Configuration de Aiop:", level=3),
         c.Paragraph(
             text="La configuration de license suivante est à renseigner dans votre fichier `~/.aiop/aiop.yml`:"
@@ -229,10 +328,10 @@ async def profile(
         c.Code(
             language="json",
             text=f"""license:
-  key: "{key}"
-  username: "{email}"
-  password: "{password}"
-  api_token: "{token}"
+  key: '{key}'
+  username: '{email}'
+  password: '{password}'
+  api_token: '{token}'
 """,
         ),
         c.Paragraph(text="Le mot de passe est optionnel si vous avez un token."),
