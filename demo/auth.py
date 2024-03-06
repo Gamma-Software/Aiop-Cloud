@@ -55,12 +55,20 @@ def auth_login(
             links=[
                 c.Link(
                     components=[c.Text(text='Password Login')],
-                    on_click=PageEvent(name='tab', push_path='/auth/login/password', context={'kind': 'password'}),
+                    on_click=PageEvent(
+                        name='tab',
+                        push_path='/auth/login/password',
+                        context={'kind': 'password'},
+                    ),
                     active='/auth/login/password',
                 ),
                 c.Link(
                     components=[c.Text(text='GitHub Login')],
-                    on_click=PageEvent(name='tab', push_path='/auth/login/github', context={'kind': 'github'}),
+                    on_click=PageEvent(
+                        name='tab',
+                        push_path='/auth/login/github',
+                        context={'kind': 'github'},
+                    ),
                     active='/auth/login/github',
                 ),
             ],
@@ -96,7 +104,10 @@ def auth_login_content(kind: LoginKind) -> list[AnyComponent]:
                 c.Heading(text='GitHub Login', level=3),
                 c.Paragraph(text='Demo of GitHub authentication.'),
                 c.Paragraph(text='(Credentials are stored in the browser via a JWT only)'),
-                c.Button(text='Login with GitHub', on_click=GoToEvent(url='/auth/login/github/gen')),
+                c.Button(
+                    text='Login with GitHub',
+                    on_click=GoToEvent(url='/auth/login/github/gen'),
+                ),
             ]
         case _:
             raise ValueError(f'Invalid kind {kind!r}')
@@ -104,7 +115,9 @@ def auth_login_content(kind: LoginKind) -> list[AnyComponent]:
 
 class LoginForm(BaseModel):
     email: EmailStr = Field(
-        title='Email Address', description='Enter whatever value you like', json_schema_extra={'autocomplete': 'email'}
+        title='Email Address',
+        description='Enter a valid email',
+        json_schema_extra={'autocomplete': 'email'},
     )
     password: SecretStr = Field(
         title='Password',
@@ -156,7 +169,8 @@ async def github_redirect(
 ) -> list[AnyComponent]:
     exchange = await github_auth.exchange_code(code, state)
     user_info, emails = await asyncio.gather(
-        github_auth.get_github_user(exchange), github_auth.get_github_user_emails(exchange)
+        github_auth.get_github_user(exchange),
+        github_auth.get_github_user_emails(exchange),
     )
     user = User(
         email=next((e.email for e in emails if e.primary and e.verified), None),

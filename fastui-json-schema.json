@@ -1,0 +1,2020 @@
+{
+  "$defs": {
+    "AnyEvent": {
+      "discriminator": {
+        "mapping": {
+          "auth": "#/$defs/AuthEvent",
+          "back": "#/$defs/BackEvent",
+          "go-to": "#/$defs/GoToEvent",
+          "page": "#/$defs/PageEvent"
+        },
+        "propertyName": "type"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/PageEvent"
+        },
+        {
+          "$ref": "#/$defs/GoToEvent"
+        },
+        {
+          "$ref": "#/$defs/BackEvent"
+        },
+        {
+          "$ref": "#/$defs/AuthEvent"
+        }
+      ]
+    },
+    "AuthEvent": {
+      "properties": {
+        "token": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "const": false
+            }
+          ]
+        },
+        "url": {
+          "default": null,
+          "type": "string"
+        },
+        "type": {
+          "const": "auth"
+        }
+      },
+      "required": ["token", "type"],
+      "title": "AuthEvent",
+      "type": "object"
+    },
+    "BackEvent": {
+      "properties": {
+        "type": {
+          "const": "back"
+        }
+      },
+      "required": ["type"],
+      "title": "BackEvent",
+      "type": "object"
+    },
+    "Button": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "onClick": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/AnyEvent"
+            }
+          ],
+          "default": null
+        },
+        "htmlType": {
+          "default": null,
+          "enum": ["button", "reset", "submit"],
+          "type": "string"
+        },
+        "namedStyle": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/NamedStyle"
+            }
+          ],
+          "default": null
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Button"
+        }
+      },
+      "required": ["text", "type"],
+      "title": "Button",
+      "type": "object"
+    },
+    "ClassName": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/ClassName"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "type": "boolean"
+          },
+          "type": "object"
+        }
+      ]
+    },
+    "Code": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "language": {
+          "default": null,
+          "type": "string"
+        },
+        "codeStyle": {
+          "default": null,
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Code"
+        }
+      },
+      "required": ["text", "type"],
+      "title": "Code",
+      "type": "object"
+    },
+    "ContextType": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ]
+      },
+      "type": "object"
+    },
+    "Custom": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/JsonData"
+        },
+        "subType": {
+          "type": "string"
+        },
+        "library": {
+          "default": null,
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Custom"
+        }
+      },
+      "required": ["data", "subType", "type"],
+      "title": "Custom",
+      "type": "object"
+    },
+    "DataModel": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonData"
+      },
+      "type": "object"
+    },
+    "Details": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/DataModel"
+        },
+        "fields": {
+          "default": null,
+          "items": {
+            "$ref": "#/$defs/DisplayLookup"
+          },
+          "type": "array"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Details"
+        }
+      },
+      "required": ["data", "type", "fields"],
+      "title": "Details",
+      "type": "object"
+    },
+    "Display": {
+      "additionalProperties": false,
+      "description": "Description of how to display a value, either in a table or detail view.",
+      "properties": {
+        "mode": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/DisplayMode"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "default": null,
+          "type": "string"
+        },
+        "onClick": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PageEvent"
+            },
+            {
+              "$ref": "#/$defs/GoToEvent"
+            },
+            {
+              "$ref": "#/$defs/BackEvent"
+            },
+            {
+              "$ref": "#/$defs/AuthEvent"
+            }
+          ],
+          "default": null
+        },
+        "value": {
+          "$ref": "#/$defs/JsonData"
+        },
+        "type": {
+          "const": "Display"
+        }
+      },
+      "required": ["value", "type"],
+      "title": "Display",
+      "type": "object"
+    },
+    "DisplayLookup": {
+      "additionalProperties": false,
+      "description": "Description of how to display a value looked up from data, either in a table or detail view.",
+      "properties": {
+        "mode": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/DisplayMode"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "default": null,
+          "type": "string"
+        },
+        "onClick": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PageEvent"
+            },
+            {
+              "$ref": "#/$defs/GoToEvent"
+            },
+            {
+              "$ref": "#/$defs/BackEvent"
+            },
+            {
+              "$ref": "#/$defs/AuthEvent"
+            }
+          ],
+          "default": null
+        },
+        "field": {
+          "type": "string"
+        },
+        "tableWidthPercent": {
+          "default": null,
+          "maximum": 100,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": ["field"],
+      "title": "DisplayLookup",
+      "type": "object"
+    },
+    "DisplayMode": {
+      "enum": ["auto", "plain", "datetime", "date", "duration", "as_title", "markdown", "json", "inline_code"],
+      "title": "DisplayMode",
+      "type": "string"
+    },
+    "Div": {
+      "additionalProperties": false,
+      "properties": {
+        "components": {
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Div"
+        }
+      },
+      "required": ["components", "type"],
+      "title": "Div",
+      "type": "object"
+    },
+    "Error": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "statusCode": {
+          "default": null,
+          "type": "integer"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Error"
+        },
+        "children": {
+          "tsType": "ReactNode"
+        }
+      },
+      "required": ["title", "description", "type"],
+      "title": "Error",
+      "type": "object"
+    },
+    "FireEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "$ref": "#/$defs/AnyEvent"
+        },
+        "message": {
+          "default": null,
+          "type": "string"
+        },
+        "type": {
+          "const": "FireEvent"
+        }
+      },
+      "required": ["event", "type"],
+      "title": "FireEvent",
+      "type": "object"
+    },
+    "Footer": {
+      "additionalProperties": false,
+      "properties": {
+        "links": {
+          "items": {
+            "$ref": "#/$defs/Link"
+          },
+          "type": "array"
+        },
+        "extraText": {
+          "default": null,
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Footer"
+        }
+      },
+      "required": ["links", "type"],
+      "title": "Footer",
+      "type": "object"
+    },
+    "Form": {
+      "additionalProperties": false,
+      "properties": {
+        "submitUrl": {
+          "type": "string"
+        },
+        "initial": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonData"
+          },
+          "default": null,
+          "type": "object"
+        },
+        "method": {
+          "default": "POST",
+          "enum": ["POST", "GOTO", "GET"],
+          "type": "string"
+        },
+        "displayMode": {
+          "default": null,
+          "enum": ["default", "page", "inline"],
+          "type": "string"
+        },
+        "submitOnChange": {
+          "default": null,
+          "type": "boolean"
+        },
+        "submitTrigger": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/PageEvent"
+            }
+          ],
+          "default": null
+        },
+        "loading": {
+          "default": null,
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "footer": {
+          "default": null,
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "formFields": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FormFieldInput"
+              },
+              {
+                "$ref": "#/$defs/FormFieldTextarea"
+              },
+              {
+                "$ref": "#/$defs/FormFieldBoolean"
+              },
+              {
+                "$ref": "#/$defs/FormFieldFile"
+              },
+              {
+                "$ref": "#/$defs/FormFieldSelect"
+              },
+              {
+                "$ref": "#/$defs/FormFieldSelectSearch"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        "type": {
+          "const": "Form"
+        }
+      },
+      "required": ["submitUrl", "formFields", "type"],
+      "title": "Form",
+      "type": "object"
+    },
+    "FormFieldBoolean": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "error": {
+          "default": null,
+          "type": "string"
+        },
+        "locked": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "default": null,
+          "type": "string"
+        },
+        "displayMode": {
+          "default": null,
+          "enum": ["default", "inline"],
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "initial": {
+          "default": null,
+          "type": "boolean"
+        },
+        "mode": {
+          "default": "checkbox",
+          "enum": ["checkbox", "switch"],
+          "type": "string"
+        },
+        "type": {
+          "const": "FormFieldBoolean"
+        }
+      },
+      "required": ["name", "title", "type"],
+      "title": "FormFieldBoolean",
+      "type": "object"
+    },
+    "FormFieldFile": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "error": {
+          "default": null,
+          "type": "string"
+        },
+        "locked": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "default": null,
+          "type": "string"
+        },
+        "displayMode": {
+          "default": null,
+          "enum": ["default", "inline"],
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "multiple": {
+          "default": null,
+          "type": "boolean"
+        },
+        "accept": {
+          "default": null,
+          "type": "string"
+        },
+        "type": {
+          "const": "FormFieldFile"
+        }
+      },
+      "required": ["name", "title", "type"],
+      "title": "FormFieldFile",
+      "type": "object"
+    },
+    "FormFieldInput": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "error": {
+          "default": null,
+          "type": "string"
+        },
+        "locked": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "default": null,
+          "type": "string"
+        },
+        "displayMode": {
+          "default": null,
+          "enum": ["default", "inline"],
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "htmlType": {
+          "default": "text",
+          "enum": ["text", "date", "datetime-local", "time", "email", "url", "number", "password", "hidden"],
+          "type": "string"
+        },
+        "initial": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "default": null
+        },
+        "placeholder": {
+          "default": null,
+          "type": "string"
+        },
+        "autocomplete": {
+          "default": null,
+          "type": "string"
+        },
+        "type": {
+          "const": "FormFieldInput"
+        }
+      },
+      "required": ["name", "title", "type"],
+      "title": "FormFieldInput",
+      "type": "object"
+    },
+    "FormFieldSelect": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "error": {
+          "default": null,
+          "type": "string"
+        },
+        "locked": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "default": null,
+          "type": "string"
+        },
+        "displayMode": {
+          "default": null,
+          "enum": ["default", "inline"],
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "options": {
+          "$ref": "#/$defs/SelectOptions"
+        },
+        "multiple": {
+          "default": null,
+          "type": "boolean"
+        },
+        "initial": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "default": null
+        },
+        "vanilla": {
+          "default": null,
+          "type": "boolean"
+        },
+        "placeholder": {
+          "default": null,
+          "type": "string"
+        },
+        "autocomplete": {
+          "default": null,
+          "type": "string"
+        },
+        "type": {
+          "const": "FormFieldSelect"
+        }
+      },
+      "required": ["name", "title", "options", "type"],
+      "title": "FormFieldSelect",
+      "type": "object"
+    },
+    "FormFieldSelectSearch": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "error": {
+          "default": null,
+          "type": "string"
+        },
+        "locked": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "default": null,
+          "type": "string"
+        },
+        "displayMode": {
+          "default": null,
+          "enum": ["default", "inline"],
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "searchUrl": {
+          "type": "string"
+        },
+        "multiple": {
+          "default": null,
+          "type": "boolean"
+        },
+        "initial": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/SelectOption"
+            }
+          ],
+          "default": null
+        },
+        "debounce": {
+          "default": null,
+          "type": "integer"
+        },
+        "placeholder": {
+          "default": null,
+          "type": "string"
+        },
+        "type": {
+          "const": "FormFieldSelectSearch"
+        }
+      },
+      "required": ["name", "title", "searchUrl", "type"],
+      "title": "FormFieldSelectSearch",
+      "type": "object"
+    },
+    "FormFieldTextarea": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "required": {
+          "default": false,
+          "type": "boolean"
+        },
+        "error": {
+          "default": null,
+          "type": "string"
+        },
+        "locked": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "default": null,
+          "type": "string"
+        },
+        "displayMode": {
+          "default": null,
+          "enum": ["default", "inline"],
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "rows": {
+          "default": null,
+          "type": "integer"
+        },
+        "cols": {
+          "default": null,
+          "type": "integer"
+        },
+        "initial": {
+          "default": null,
+          "type": "string"
+        },
+        "placeholder": {
+          "default": null,
+          "type": "string"
+        },
+        "autocomplete": {
+          "default": null,
+          "type": "string"
+        },
+        "type": {
+          "const": "FormFieldTextarea"
+        }
+      },
+      "required": ["name", "title", "type"],
+      "title": "FormFieldTextarea",
+      "type": "object"
+    },
+    "GoToEvent": {
+      "properties": {
+        "url": {
+          "default": null,
+          "type": "string"
+        },
+        "query": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "default": null,
+          "type": "object"
+        },
+        "target": {
+          "const": "_blank",
+          "default": null
+        },
+        "type": {
+          "const": "go-to"
+        }
+      },
+      "required": ["type"],
+      "title": "GoToEvent",
+      "type": "object"
+    },
+    "Heading": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "level": {
+          "default": 1,
+          "enum": [1, 2, 3, 4, 5, 6],
+          "type": "integer"
+        },
+        "htmlId": {
+          "default": null,
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Heading"
+        }
+      },
+      "required": ["text", "type", "level"],
+      "title": "Heading",
+      "type": "object"
+    },
+    "Iframe": {
+      "additionalProperties": false,
+      "properties": {
+        "src": {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "type": "string"
+        },
+        "title": {
+          "default": null,
+          "type": "string"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "srcdoc": {
+          "default": null,
+          "type": "string"
+        },
+        "sandbox": {
+          "default": null,
+          "type": "string"
+        },
+        "type": {
+          "const": "Iframe"
+        }
+      },
+      "required": ["src", "type"],
+      "title": "Iframe",
+      "type": "object"
+    },
+    "Image": {
+      "additionalProperties": false,
+      "properties": {
+        "src": {
+          "type": "string"
+        },
+        "alt": {
+          "default": null,
+          "type": "string"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null
+        },
+        "referrerPolicy": {
+          "default": null,
+          "enum": [
+            "no-referrer",
+            "no-referrer-when-downgrade",
+            "origin",
+            "origin-when-cross-origin",
+            "same-origin",
+            "strict-origin",
+            "strict-origin-when-cross-origin",
+            "unsafe-url"
+          ],
+          "type": "string"
+        },
+        "loading": {
+          "default": null,
+          "enum": ["eager", "lazy"],
+          "type": "string"
+        },
+        "onClick": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/AnyEvent"
+            }
+          ],
+          "default": null
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Image"
+        }
+      },
+      "required": ["src", "type"],
+      "title": "Image",
+      "type": "object"
+    },
+    "Json": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/JsonData"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "JSON"
+        }
+      },
+      "required": ["value", "type"],
+      "title": "Json",
+      "type": "object"
+    },
+    "JsonData": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/JsonData"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonData"
+          },
+          "type": "object"
+        }
+      ]
+    },
+    "Link": {
+      "additionalProperties": false,
+      "properties": {
+        "components": {
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "onClick": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PageEvent"
+            },
+            {
+              "$ref": "#/$defs/GoToEvent"
+            },
+            {
+              "$ref": "#/$defs/BackEvent"
+            },
+            {
+              "$ref": "#/$defs/AuthEvent"
+            }
+          ],
+          "default": null
+        },
+        "mode": {
+          "default": null,
+          "enum": ["navbar", "footer", "tabs", "vertical", "pagination"],
+          "type": "string"
+        },
+        "active": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "default": null
+        },
+        "locked": {
+          "default": null,
+          "type": "boolean"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Link"
+        }
+      },
+      "required": ["components", "type"],
+      "title": "Link",
+      "type": "object"
+    },
+    "LinkList": {
+      "additionalProperties": false,
+      "properties": {
+        "links": {
+          "items": {
+            "$ref": "#/$defs/Link"
+          },
+          "type": "array"
+        },
+        "mode": {
+          "default": null,
+          "enum": ["tabs", "vertical", "pagination"],
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "LinkList"
+        }
+      },
+      "required": ["links", "type"],
+      "title": "LinkList",
+      "type": "object"
+    },
+    "Markdown": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "codeStyle": {
+          "default": null,
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Markdown"
+        }
+      },
+      "required": ["text", "type"],
+      "title": "Markdown",
+      "type": "object"
+    },
+    "Modal": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "body": {
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "footer": {
+          "default": null,
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "openTrigger": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/PageEvent"
+            }
+          ],
+          "default": null
+        },
+        "openContext": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ContextType"
+            }
+          ],
+          "default": null
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Modal"
+        }
+      },
+      "required": ["title", "body", "type"],
+      "title": "Modal",
+      "type": "object"
+    },
+    "ModelForm": {
+      "additionalProperties": false,
+      "properties": {
+        "submitUrl": {
+          "type": "string"
+        },
+        "initial": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonData"
+          },
+          "default": null,
+          "type": "object"
+        },
+        "method": {
+          "default": "POST",
+          "enum": ["POST", "GOTO", "GET"],
+          "type": "string"
+        },
+        "displayMode": {
+          "default": null,
+          "enum": ["default", "page", "inline"],
+          "type": "string"
+        },
+        "submitOnChange": {
+          "default": null,
+          "type": "boolean"
+        },
+        "submitTrigger": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/PageEvent"
+            }
+          ],
+          "default": null
+        },
+        "loading": {
+          "default": null,
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "footer": {
+          "default": null,
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "ModelForm"
+        },
+        "formFields": {
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/FormFieldInput"
+              },
+              {
+                "$ref": "#/$defs/FormFieldTextarea"
+              },
+              {
+                "$ref": "#/$defs/FormFieldBoolean"
+              },
+              {
+                "$ref": "#/$defs/FormFieldFile"
+              },
+              {
+                "$ref": "#/$defs/FormFieldSelect"
+              },
+              {
+                "$ref": "#/$defs/FormFieldSelectSearch"
+              }
+            ]
+          },
+          "readOnly": true,
+          "type": "array"
+        }
+      },
+      "required": ["submitUrl", "type", "formFields"],
+      "title": "ModelForm",
+      "type": "object"
+    },
+    "NamedStyle": {
+      "enum": ["primary", "secondary", "warning"],
+      "type": "string"
+    },
+    "Navbar": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "default": null,
+          "type": "string"
+        },
+        "titleEvent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PageEvent"
+            },
+            {
+              "$ref": "#/$defs/GoToEvent"
+            },
+            {
+              "$ref": "#/$defs/BackEvent"
+            },
+            {
+              "$ref": "#/$defs/AuthEvent"
+            }
+          ],
+          "default": null
+        },
+        "startLinks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Link"
+          },
+          "type": "array"
+        },
+        "endLinks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Link"
+          },
+          "type": "array"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Navbar"
+        }
+      },
+      "required": ["type", "startLinks", "endLinks"],
+      "title": "Navbar",
+      "type": "object"
+    },
+    "Page": {
+      "additionalProperties": false,
+      "description": "Similar to `container` in many UI frameworks, this should be a reasonable root component for most pages.",
+      "properties": {
+        "components": {
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Page"
+        }
+      },
+      "required": ["components", "type"],
+      "title": "Page",
+      "type": "object"
+    },
+    "PageEvent": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "pushPath": {
+          "default": null,
+          "type": "string"
+        },
+        "context": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ContextType"
+            }
+          ],
+          "default": null
+        },
+        "clear": {
+          "default": null,
+          "type": "boolean"
+        },
+        "nextEvent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PageEvent"
+            },
+            {
+              "$ref": "#/$defs/GoToEvent"
+            },
+            {
+              "$ref": "#/$defs/BackEvent"
+            },
+            {
+              "$ref": "#/$defs/AuthEvent"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "page"
+        }
+      },
+      "required": ["name", "type"],
+      "title": "PageEvent",
+      "type": "object"
+    },
+    "PageTitle": {
+      "additionalProperties": false,
+      "description": "This sets the title of the HTML page via the `document.title` property.",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "type": {
+          "const": "PageTitle"
+        }
+      },
+      "required": ["text", "type"],
+      "title": "PageTitle",
+      "type": "object"
+    },
+    "Pagination": {
+      "properties": {
+        "page": {
+          "type": "integer"
+        },
+        "pageSize": {
+          "type": "integer"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Pagination"
+        },
+        "pageCount": {
+          "readOnly": true,
+          "type": "integer"
+        }
+      },
+      "required": ["page", "pageSize", "total", "type", "pageCount"],
+      "title": "Pagination",
+      "type": "object"
+    },
+    "Paragraph": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Paragraph"
+        }
+      },
+      "required": ["text", "type"],
+      "title": "Paragraph",
+      "type": "object"
+    },
+    "SelectGroup": {
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/SelectOption"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["label", "options"],
+      "title": "SelectGroup",
+      "type": "object"
+    },
+    "SelectOption": {
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": ["value", "label"],
+      "title": "SelectOption",
+      "type": "object"
+    },
+    "SelectOptions": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/SelectOption"
+          },
+          "type": "array"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/SelectGroup"
+          },
+          "type": "array"
+        }
+      ]
+    },
+    "ServerLoad": {
+      "additionalProperties": false,
+      "description": "A component that will be replaced by the server with the component returned by the given URL.",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "loadTrigger": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/PageEvent"
+            }
+          ],
+          "default": null
+        },
+        "components": {
+          "default": null,
+          "items": {
+            "$ref": "#/$defs/FastProps"
+          },
+          "type": "array"
+        },
+        "sse": {
+          "default": null,
+          "type": "boolean"
+        },
+        "sseRetry": {
+          "default": null,
+          "type": "integer"
+        },
+        "method": {
+          "default": null,
+          "enum": ["GET", "POST", "PATCH", "PUT", "DELETE"],
+          "type": "string"
+        },
+        "type": {
+          "const": "ServerLoad"
+        }
+      },
+      "required": ["path", "type"],
+      "title": "ServerLoad",
+      "type": "object"
+    },
+    "Spinner": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "default": null,
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Spinner"
+        }
+      },
+      "required": ["type"],
+      "title": "Spinner",
+      "type": "object"
+    },
+    "Table": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "items": {
+            "$ref": "#/$defs/DataModel"
+          },
+          "type": "array"
+        },
+        "columns": {
+          "default": null,
+          "items": {
+            "$ref": "#/$defs/DisplayLookup"
+          },
+          "type": "array"
+        },
+        "noDataMessage": {
+          "default": null,
+          "type": "string"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Table"
+        }
+      },
+      "required": ["data", "type", "columns"],
+      "title": "Table",
+      "type": "object"
+    },
+    "Text": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "type": {
+          "const": "Text"
+        }
+      },
+      "required": ["text", "type"],
+      "title": "Text",
+      "type": "object"
+    },
+    "Video": {
+      "additionalProperties": false,
+      "properties": {
+        "sources": {
+          "items": {
+            "format": "uri",
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "autoplay": {
+          "default": null,
+          "type": "boolean"
+        },
+        "controls": {
+          "default": null,
+          "type": "boolean"
+        },
+        "loop": {
+          "default": null,
+          "type": "boolean"
+        },
+        "muted": {
+          "default": null,
+          "type": "boolean"
+        },
+        "poster": {
+          "default": null,
+          "format": "uri",
+          "minLength": 1,
+          "type": "string"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null
+        },
+        "height": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "const": "Video"
+        },
+        "className": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ClassName"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": ["sources", "type"],
+      "title": "Video",
+      "type": "object"
+    },
+    "FastProps": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Text"
+        },
+        {
+          "$ref": "#/$defs/Paragraph"
+        },
+        {
+          "$ref": "#/$defs/PageTitle"
+        },
+        {
+          "$ref": "#/$defs/Div"
+        },
+        {
+          "$ref": "#/$defs/Page"
+        },
+        {
+          "$ref": "#/$defs/Heading"
+        },
+        {
+          "$ref": "#/$defs/Markdown"
+        },
+        {
+          "$ref": "#/$defs/Code"
+        },
+        {
+          "$ref": "#/$defs/Json"
+        },
+        {
+          "$ref": "#/$defs/Button"
+        },
+        {
+          "$ref": "#/$defs/Link"
+        },
+        {
+          "$ref": "#/$defs/LinkList"
+        },
+        {
+          "$ref": "#/$defs/Navbar"
+        },
+        {
+          "$ref": "#/$defs/Footer"
+        },
+        {
+          "$ref": "#/$defs/Modal"
+        },
+        {
+          "$ref": "#/$defs/ServerLoad"
+        },
+        {
+          "$ref": "#/$defs/Image"
+        },
+        {
+          "$ref": "#/$defs/Iframe"
+        },
+        {
+          "$ref": "#/$defs/Video"
+        },
+        {
+          "$ref": "#/$defs/FireEvent"
+        },
+        {
+          "$ref": "#/$defs/Error"
+        },
+        {
+          "$ref": "#/$defs/Spinner"
+        },
+        {
+          "$ref": "#/$defs/Custom"
+        },
+        {
+          "$ref": "#/$defs/Table"
+        },
+        {
+          "$ref": "#/$defs/Pagination"
+        },
+        {
+          "$ref": "#/$defs/Display"
+        },
+        {
+          "$ref": "#/$defs/Details"
+        },
+        {
+          "$ref": "#/$defs/Form"
+        },
+        {
+          "$ref": "#/$defs/FormFieldInput"
+        },
+        {
+          "$ref": "#/$defs/FormFieldTextarea"
+        },
+        {
+          "$ref": "#/$defs/FormFieldBoolean"
+        },
+        {
+          "$ref": "#/$defs/FormFieldFile"
+        },
+        {
+          "$ref": "#/$defs/FormFieldSelect"
+        },
+        {
+          "$ref": "#/$defs/FormFieldSelectSearch"
+        },
+        {
+          "$ref": "#/$defs/ModelForm"
+        }
+      ]
+    }
+  },
+  "items": {
+    "$ref": "#/$defs/FastProps"
+  },
+  "title": "FastUI",
+  "type": "array"
+}
