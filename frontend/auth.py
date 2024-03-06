@@ -17,6 +17,8 @@ from pydantic import BaseModel, EmailStr, Field, SecretStr
 
 from .auth_user import User
 from .shared import demo_page
+from httpx import AsyncClient
+import httpx
 
 router = APIRouter()
 
@@ -39,6 +41,7 @@ async def get_github_auth(request: Request) -> GitHubAuthProvider:
 
 
 LoginKind: TypeAlias = Literal["password", "github"]
+client = AsyncClient()
 
 
 @router.get("/login/{kind}", response_model=FastUI, response_model_exclude_none=True)
@@ -154,19 +157,47 @@ class LoginForm(BaseModel):
 async def login_form_post(
     form: Annotated[LoginForm, fastui_form(LoginForm)]
 ) -> list[AnyComponent]:
-    user = User(email=form.email, extra={})
-    token = user.encode_token()
-    return [c.FireEvent(event=AuthEvent(token=token, url="/auth/profile"))]
+    # Verify if the user exists in the database by calling backend api
+    response = await client.post(
+        "https://aiop-dev-backend.pival.fr/api/v1/auth/jwt/login",
+        data={
+            "grant_type": "",
+            "username": form.email,
+            "password": form.password.get_secret_value(),
+            "scope": "",
+            "client_id": "",
+            "client_secret": "",
+        },
+    )
+    response.raise_for_status()
+    data = response.json()
+    user = User(
+        email=form.email,
+        extra={"pass": form.password.get_secret_value(), "token": data["access_token"]},
+    )
+    return [
+        c.FireEvent(event=AuthEvent(token=user.encode_token(), url="/auth/profile"))
+    ]
+
+
+async def get_license_key(bearer_token: str):
+    response = await client.get(
+        "https://aiop-dev-backend.pival.fr/api/v1/license/",
+        headers={"Authorization": f"Bearer {bearer_token}"},
+    )
+    response.raise_for_status()
+    data = response.json()
+    return data["license_key"]
 
 
 @router.get("/profile", response_model=FastUI, response_model_exclude_none=True)
 async def profile(
     user: Annotated[User, Depends(User.from_request)]
 ) -> list[AnyComponent]:
-    key = "key"
     email = user.email
-    password = "<mot de passe de votre compte>"
-    token = "token"
+    password = user.extra.get("pass", "password")
+    token = user.extra.get("token", "token")
+    key = await get_license_key(token)
     return demo_page(
         c.Navbar(
             title="Aiop Cloud",
