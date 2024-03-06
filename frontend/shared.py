@@ -21,7 +21,7 @@ def demo_page(
                 ),
                 c.Link(
                     components=[c.Text(text="Contact")],
-                    on_click=GoToEvent(url="/contact"),
+                    on_click=GoToEvent(url="https://aiop.fr/docs/contact"),
                     active="startswith:/forms",
                 ),
             ],
@@ -41,7 +41,7 @@ def demo_page(
                 ),
                 c.Link(
                     components=[c.Text(text="Contact")],
-                    on_click=GoToEvent(url="/contact"),
+                    on_click=GoToEvent(url="https://aiop.fr/docs/contact"),
                 ),
             ],
         ),

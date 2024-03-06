@@ -23,7 +23,7 @@ Connectez-vous à votre compte Aiop Cloud pour modifier votre mot de passe, obte
     modal = c.Div(
         components=[
             c.Button(
-                text="Se connecter / S’inscrire",
+                text="Se connecter",
                 named_style="secondary",
                 on_click=GoToEvent(url="/auth/login/password"),
             ),

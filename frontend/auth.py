@@ -56,18 +56,13 @@ def auth_login(
             title_event=GoToEvent(url="/"),
             start_links=[
                 c.Link(
-                    components=[c.Text(text="Compte")],
-                    on_click=GoToEvent(url="/account"),
-                    active="startswith:/account",
-                ),
-                c.Link(
                     components=[c.Text(text="Auth")],
                     on_click=GoToEvent(url="/auth/login/password"),
                     active="startswith:/auth",
                 ),
                 c.Link(
                     components=[c.Text(text="Contact")],
-                    on_click=GoToEvent(url="/contact"),
+                    on_click=GoToEvent(url="https://aiop.fr/docs/contact"),
                     active="startswith:/forms",
                 ),
             ],
@@ -170,7 +165,7 @@ async def profile(
 ) -> list[AnyComponent]:
     key = "key"
     email = user.email
-    password = user
+    password = "<mot de passe de votre compte>"
     token = "token"
     return demo_page(
         c.Navbar(
@@ -179,12 +174,12 @@ async def profile(
             start_links=[
                 c.Link(
                     components=[c.Text(text="Compte")],
-                    on_click=GoToEvent(url="/account"),
-                    active="startswith:/account",
+                    on_click=GoToEvent(url="/auth/profile"),
+                    active="startswith:/auth/profile",
                 ),
                 c.Link(
                     components=[c.Text(text="Contact")],
-                    on_click=GoToEvent(url="/contact"),
+                    on_click=GoToEvent(url="https://aiop.fr/docs/contact"),
                     active="startswith:/forms",
                 ),
                 c.Link(
@@ -209,6 +204,7 @@ async def profile(
   api_token: "{token}"
 """,
         ),
+        c.Paragraph(text="Le mot de passe est optionnel si vous avez un token."),
         c.Heading(text="Se déconnecter:", level=3),
         c.Button(text="Se déconnecter", on_click=PageEvent(name="submit-form")),
         c.Form(
