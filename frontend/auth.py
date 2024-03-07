@@ -40,7 +40,7 @@ async def get_github_auth(request: Request) -> GitHubAuthProvider:
     )
 
 
-LoginKind: TypeAlias = Literal["password", "github"]
+LoginKind: TypeAlias = Literal["password", "github", "register-password"]
 client = AsyncClient()
 
 
@@ -80,6 +80,15 @@ def auth_login(
                         context={"kind": "password"},
                     ),
                     active="/auth/login/password",
+                ),
+                c.Link(
+                    components=[c.Text(text="Création de compte")],
+                    on_click=PageEvent(
+                        name="tab",
+                        push_path="/auth/login/password",
+                        context={"kind": "register-password"},
+                    ),
+                    active="/auth/login/register-password",
                 ),
                 # TODO : add GitHub login
                 # c.Link(
@@ -139,6 +148,15 @@ def auth_login_content(kind: LoginKind) -> list[AnyComponent]:
                     on_click=GoToEvent(url="/auth/login/github/gen"),
                 ),
             ]
+        case "register-password":
+            return [
+                c.Heading(text="Création de compte", level=3),
+                c.ModelForm(
+                    model=RegisterForm,
+                    submit_url="/api/auth/register",
+                    display_mode="page",
+                ),
+            ]
         case _:
             raise ValueError(f"Invalid kind {kind!r}")
 
@@ -154,6 +172,63 @@ class LoginForm(BaseModel):
         description="Entrez votre mot de passe",
         json_schema_extra={"autocomplete": "current-password"},
     )
+
+
+class RegisterForm(BaseModel):
+    email: EmailStr = Field(
+        title="Adresse Email",
+        description="Entrez votre adresse email",
+        json_schema_extra={"autocomplete": "email"},
+    )
+    password: SecretStr = Field(
+        title="Mot de passe",
+        description="Entrez votre mot de passe",
+        json_schema_extra={"autocomplete": "current-password"},
+    )
+    retry_password: SecretStr = Field(
+        title="Mot de passe",
+        description="Entrez votre mot de passe une seconde fois pour vérification",
+    )
+
+
+@router.post("/register", response_model=FastUI, response_model_exclude_none=True)
+async def login_form_post(
+    form: Annotated[RegisterForm, fastui_form(RegisterForm)]
+) -> list[AnyComponent]:
+    # Verify the password is the same
+    if form.password != form.retry_password:
+        raise ValueError("Les mots de passes ne sont pas identiques.")
+
+    # Verify if the user exists in the database by calling backend api
+    url = "http://127.0.0.1:7000/api/v1/auth/register"
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+    data = {
+        "email": form.email,
+        "password": form.password.get_secret_value(),
+        "is_active": True,
+        "is_superuser": False,
+        "is_verified": False,
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 201:
+        return [
+            c.Paragraph(text="Votre compte a été créé avec succès."),
+            c.Button(text="Se connecter", on_click=GoToEvent(url="/auth/profile")),
+        ]
+    if response.status_code == 400:
+        raise ValueError("L'utilisateur existe déjà.")
+    if response.status_code == 500:
+        raise ValueError("Erreur interne, veuillez réessayer plus tard.")
+    response.raise_for_status()
+
+    data = response.json()
+    user = User(
+        email=form.email,
+        extra={"pass": form.password.get_secret_value(), "token": data["access_token"]},
+    )
+    return [
+        c.FireEvent(event=GoToEvent(url="/auth/profile")),
+    ]
 
 
 @router.post("/login", response_model=FastUI, response_model_exclude_none=True)
