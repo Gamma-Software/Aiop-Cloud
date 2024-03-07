@@ -20,6 +20,13 @@ from .auth_user import User
 from .shared import demo_page
 from httpx import AsyncClient
 
+from .models.forms import (
+    LoginForm,
+    RegisterForm,
+    ForgotPasswordForm,
+    ResetPassForm,
+)
+
 router = APIRouter()
 
 GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "0d0315f9c2e055d032e2")
@@ -161,36 +168,6 @@ def auth_login_content(kind: LoginKind) -> list[AnyComponent]:
             raise ValueError(f"Invalid kind {kind!r}")
 
 
-class LoginForm(BaseModel):
-    email: EmailStr = Field(
-        title="Adresse Email",
-        description="Entrez votre adresse email",
-        json_schema_extra={"autocomplete": "email"},
-    )
-    password: SecretStr = Field(
-        title="Mot de passe",
-        description="Entrez votre mot de passe",
-        json_schema_extra={"autocomplete": "current-password"},
-    )
-
-
-class RegisterForm(BaseModel):
-    email: EmailStr = Field(
-        title="Adresse Email",
-        description="Entrez votre adresse email",
-        json_schema_extra={"autocomplete": "email"},
-    )
-    password: SecretStr = Field(
-        title="Mot de passe",
-        description="Entrez votre mot de passe",
-        json_schema_extra={"autocomplete": "current-password"},
-    )
-    retry_password: SecretStr = Field(
-        title="Mot de passe",
-        description="Entrez votre mot de passe une seconde fois pour vérification",
-    )
-
-
 @router.post("/register", response_model=FastUI, response_model_exclude_none=True)
 async def login_form_post(
     form: Annotated[RegisterForm, fastui_form(RegisterForm)]
@@ -259,25 +236,18 @@ async def login_form_post(
 
 
 async def get_license_key(bearer_token: str):
-    response = await client.get(
-        "https://aiop-dev-backend.pival.fr/api/v1/license/",
-        headers={"Authorization": f"Bearer {bearer_token}"},
-    )
-    response.raise_for_status()
-    data = response.json()
-    return data["license_key"]
-
-
-class ResetPassForm(BaseModel):
-    current_pass: str = Field(
-        title="Mot de passe actuel",
-        description="Entrez votre mot de passe actuel",
-        json_schema_extra={"autocomplete": "current-password"},
-    )
-    new_password: SecretStr = Field(
-        title="Nouveau mot de passe",
-        description="Entrez votre nouveau mot de passe",
-    )
+    key = "Clée de license non trouvée."
+    try:
+        response = await client.get(
+            "https://aiop-dev-backend.pival.fr/api/v1/license/",
+            headers={"Authorization": f"Bearer {bearer_token}"},
+        )
+        response.raise_for_status()
+        data = response.json()
+        key = data["license_key"]
+    except Exception as e:
+        print("Request failed:", e)
+    return key
 
 
 @router.get("/reset-password", response_model=FastUI, response_model_exclude_none=True)
@@ -305,10 +275,71 @@ async def reset_password(
     ]
 
 
-class ForgotPasswordForm(BaseModel):
-    email: EmailStr = Field(
-        title="Email Address", description="Entrez votre adresse email"
+@router.get(
+    "/reset-password/{token}", response_model=FastUI, response_model_exclude_none=True
+)
+async def reset_password_page(
+    token: str,
+) -> list[AnyComponent]:
+    return demo_page(
+        c.Navbar(
+            title="Aiop Cloud",
+            title_event=GoToEvent(url="/"),
+            start_links=[
+                c.Link(
+                    components=[c.Text(text="Auth")],
+                    on_click=GoToEvent(url="/auth/login/password"),
+                    active="startswith:/auth",
+                ),
+                c.Link(
+                    components=[c.Text(text="Contact")],
+                    on_click=GoToEvent(url="https://aiop.fr/docs/contact"),
+                    active="startswith:/forms",
+                ),
+            ],
+        ),
+        c.Div(
+            components=[
+                c.ModelForm(
+                    model=ResetPassForm,
+                    display_mode="default",
+                    submit_url="/api/auth/reset-password-token",
+                ),
+            ],
+            class_name="border-top mt-3 pt-1",
+        ),
+        title="Changer de mot de passe",
     )
+
+
+@router.post(
+    "/reset-password-token", response_model=FastUI, response_model_exclude_none=True
+)
+async def reset_password_without_email(
+    form: Annotated[ResetPassForm, fastui_form(ResetPassForm)]
+) -> list[AnyComponent]:
+    print(form)
+    if form.new_password != form.retry_new_password:
+        raise ValueError("Les mots de passes ne sont pas identiques.")
+
+    url = "http://127.0.0.1:7000/api/v1/auth/reset-password"
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+    data = {"token": form.token, "password": form.new_password.get_secret_value()}
+
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print("Request failed:", e)
+        return [
+            c.Paragraph(
+                text=f"Nous avons rencontré un problème lors de l'envoi de l'email de réinitialisation de mot de passe. Veuillez réessayer plus tard."
+            )
+        ]
+    return [
+        c.Markdown(text="__Votre mot de passe est changé__"),
+        c.Button(text="Se connecter", on_click=GoToEvent(url="/auth/login/password")),
+    ]
 
 
 @router.post(
