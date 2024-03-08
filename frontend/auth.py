@@ -120,6 +120,20 @@ def auth_login(
     )
 
 
+# @router.get("/error/{kind}", response_model=FastUI, response_model_exclude_none=True)
+# def display_error(kind: LoginKind) -> list[AnyComponent]:
+#    return [
+#        c.Div(
+#            components=[
+#                c.Heading(text="Erreur", level=1),
+#                c.Paragraph(text="Adresse email ou mot de passe incorrect."),
+#                c.Button(text="Ok", on_click=GoToEvent(url="/auth/profile")),
+#            ],
+#            class_name="border-top mt-3 pt-1",
+#        ),
+#    ]
+
+
 @router.get(
     "/login/content/{kind}", response_model=FastUI, response_model_exclude_none=True
 )
@@ -137,10 +151,15 @@ def auth_login_content(kind: LoginKind) -> list[AnyComponent]:
                         "En appuyant sur ce button, vous recevrez un email pour changer votre mot de passe."
                     )
                 ),
-                c.ModelForm(
-                    model=ForgotPasswordForm,
-                    display_mode="default",
-                    submit_url="/api/auth/reset-password-email",
+                c.Div(
+                    components=[
+                        c.ModelForm(
+                            model=ForgotPasswordForm,
+                            display_mode="default",
+                            submit_url="/api/auth/reset-password-email",
+                        ),
+                    ],
+                    class_name="border-top mt-3 pt-1",
                 ),
             ]
         case "github":
@@ -189,22 +208,36 @@ async def login_form_post(
     response = requests.post(url, headers=headers, json=data)
     if response.status_code == 201:
         return [
-            c.Paragraph(text="Votre compte a été créé avec succès."),
-            c.Button(text="Se connecter", on_click=GoToEvent(url="/auth/profile")),
+            c.Div(
+                components=[
+                    c.Paragraph(text="Votre compte a été créé avec succès."),
+                    c.Button(
+                        text="Se connecter", on_click=GoToEvent(url="/auth/profile")
+                    ),
+                ],
+                class_name="border-top mt-3 pt-1",
+            ),
         ]
     if response.status_code == 400:
-        raise ValueError("L'utilisateur existe déjà.")
-    if response.status_code == 500:
-        raise ValueError("Erreur interne, veuillez réessayer plus tard.")
-    response.raise_for_status()
-
-    data = response.json()
-    user = User(
-        email=form.email,
-        extra={"pass": form.password.get_secret_value(), "token": data["access_token"]},
-    )
+        return [
+            c.Div(
+                components=[
+                    c.Heading(text="Erreur", level=1),
+                    c.Paragraph(text="Un compte avec cette adresse email existe déjà."),
+                    c.Button(text="Réessayer", on_click=GoToEvent(url="/auth/profile")),
+                ],
+                class_name="border-top mt-3 pt-1",
+            ),
+        ]
     return [
-        c.FireEvent(event=GoToEvent(url="/auth/profile")),
+        c.Div(
+            components=[
+                c.Heading(text="Erreur", level=1),
+                c.Paragraph(text="Erreur interne, veuillez réessayer plus tard."),
+                c.Button(text="Ok", on_click=GoToEvent(url="/auth/profile")),
+            ],
+            class_name="border-top mt-3 pt-1",
+        ),
     ]
 
 
@@ -214,7 +247,7 @@ async def login_form_post(
 ) -> list[AnyComponent]:
     # Verify if the user exists in the database by calling backend api
     response = await client.post(
-        "https://aiop-dev-backend.pival.fr/api/v1/auth/jwt/login",
+        "http://127.0.0.1:7000/api/v1/auth/jwt/login",
         data={
             "grant_type": "",
             "username": form.email,
@@ -224,7 +257,28 @@ async def login_form_post(
             "client_secret": "",
         },
     )
-    response.raise_for_status()
+    if response.status_code == 400:
+        return [
+            c.Div(
+                components=[
+                    c.Heading(text="Erreur", level=1),
+                    c.Paragraph(text="Adresse email ou mot de passe incorrect."),
+                    c.Button(text="Réessayer", on_click=GoToEvent(url="/auth/profile")),
+                ],
+                class_name="border-top mt-3 pt-1",
+            ),
+        ]
+    if response.status_code == 422:
+        return [
+            c.Div(
+                components=[
+                    c.Heading(text="Erreur", level=1),
+                    c.Paragraph(text="Erreur interne, veuillez réessayer plus tard."),
+                    c.Button(text="Ok", on_click=GoToEvent(url="/auth/profile")),
+                ],
+                class_name="border-top mt-3 pt-1",
+            ),
+        ]
     data = response.json()
     user = User(
         email=form.email,
@@ -458,7 +512,27 @@ async def profile(
 
 
 @router.post("/logout", response_model=FastUI, response_model_exclude_none=True)
-async def logout_form_post() -> list[AnyComponent]:
+async def logout_form_post(
+    user: Annotated[User, Depends(User.from_request)]
+) -> list[AnyComponent]:
+    # Verify if the user exists in the database by calling backend api
+    token = user.extra.get("token", "pas de token")
+    response = await client.post(
+        "http://127.0.0.1:7000/api/v1/auth/jwt/logout",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    if response.status_code == 401:
+        return [
+            c.Div(
+                components=[
+                    c.Heading(text="Erreur", level=1),
+                    c.Paragraph(text="Token invalide ou utilisateur inexistant."),
+                    c.Button(text="Ok", on_click=GoToEvent(url="/auth/profile")),
+                    # c.Button(text="Contacter support", on_click=GoToEvent(url="/auth/profile")),
+                ],
+                class_name="border-top mt-3 pt-1",
+            ),
+        ]
     return [c.FireEvent(event=AuthEvent(token=False, url="/auth/login/password"))]
 
 
