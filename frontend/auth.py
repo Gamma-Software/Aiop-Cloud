@@ -196,7 +196,7 @@ async def login_form_post(
         raise ValueError("Les mots de passes ne sont pas identiques.")
 
     # Verify if the user exists in the database by calling backend api
-    url = "http://127.0.0.1:7000/api/v1/auth/register"
+    url = "https://api.aiop.fr/api/auth/register"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     data = {
         "email": form.email,
@@ -247,7 +247,7 @@ async def login_form_post(
 ) -> list[AnyComponent]:
     # Verify if the user exists in the database by calling backend api
     response = await client.post(
-        "http://127.0.0.1:7000/api/v1/auth/jwt/login",
+        "https://api.aiop.fr/api/auth/jwt/login",
         data={
             "grant_type": "",
             "username": form.email,
@@ -308,7 +308,7 @@ async def get_license_key(bearer_token: str):
 async def reset_password(
     user: Annotated[User, Depends(User.from_request)],
 ) -> list[AnyComponent]:
-    url = "http://127.0.0.1:7000/api/v1/auth/forgot-password"
+    url = "https://api.aiop.fr/api/auth/forgot-password"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     data = {"email": user.email}
 
@@ -376,7 +376,7 @@ async def reset_password_without_email(
     if form.new_password != form.retry_new_password:
         raise ValueError("Les mots de passes ne sont pas identiques.")
 
-    url = "http://127.0.0.1:7000/api/v1/auth/reset-password"
+    url = "https://api.aiop.fr/api/auth/reset-password"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     data = {"token": form.token, "password": form.new_password.get_secret_value()}
 
@@ -402,7 +402,7 @@ async def reset_password_without_email(
 async def reset_password_without_email(
     form: Annotated[ForgotPasswordForm, fastui_form(ForgotPasswordForm)]
 ) -> list[AnyComponent]:
-    url = "http://127.0.0.1:7000/api/v1/auth/forgot-password"
+    url = "https://api.aiop.fr/api/auth/forgot-password"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     data = {"email": form.email}
 
@@ -518,7 +518,7 @@ async def logout_form_post(
     # Verify if the user exists in the database by calling backend api
     token = user.extra.get("token", "pas de token")
     response = await client.post(
-        "http://127.0.0.1:7000/api/v1/auth/jwt/logout",
+        "https://api.aiop.fr/api/auth/jwt/logout",
         headers={"Authorization": f"Bearer {token}"},
     )
     if response.status_code == 401:

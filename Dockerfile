@@ -28,4 +28,4 @@ RUN npm install
 EXPOSE 8000
 
 # Run the application when the container launches
-CMD ["uvicorn", "frontend:app", "--reload", "--reload-dir", "."]
+CMD ["uvicorn", "frontend:app", "--reload", "--reload-dir", ".", "--host", "0.0.0.0"]
