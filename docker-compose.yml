@@ -1,0 +1,8 @@
+services:
+  app:
+    image: aiop-cloud
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    ports:
+      - '8765:8000'

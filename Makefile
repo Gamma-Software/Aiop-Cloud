@@ -4,6 +4,7 @@ path = src/python-fastui
 .PHONY: install
 install:
 	pip install -U pip pre-commit pip-tools
+	pip install -r requirements.txt
 	pip install -r $(path)/requirements/all.txt
 	pip install -e $(path)
 	pre-commit install
