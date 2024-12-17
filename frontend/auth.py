@@ -72,7 +72,7 @@ def auth_login(
                 ),
                 c.Link(
                     components=[c.Text(text="Contact")],
-                    on_click=GoToEvent(url="https://aiop.fr/docs/contact"),
+                    on_click=GoToEvent(url="https://docs.aiop.fr/docs/contact"),
                     active="startswith:/forms",
                 ),
             ],
