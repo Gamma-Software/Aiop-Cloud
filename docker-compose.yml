@@ -1,8 +1,19 @@
+version: '3'
+
+networks:
+  backend:
+    external: true
+  frontend:
+    external: true
+
 services:
   app:
     image: aiop-cloud
+    networks:
+      - backend
+      - frontend
     #build:
     #  context: .
     #  dockerfile: Dockerfile
-    ports:
-      - '8765:8000'
+    #ports:
+    #  - '8765:8000'
